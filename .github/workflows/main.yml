@@ -41,4 +41,4 @@ jobs:
         with:
           GITHUB_TOKEN: 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
           BRANCH: gh-pages
-          FOLDER: deploy_dist/angular-demo
+          FOLDER: deploy_dist
