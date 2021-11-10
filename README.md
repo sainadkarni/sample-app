@@ -1,29 +1,87 @@
 # SampleApp
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.7.
+This project was developed to try and learn GitHub actions to deploy a SPA.
 
-Testing GitHub actions for Tech Solutions
+### Creation of GitHub Actions file
 
-## Development server
+First off, create a directory `.github/workflows/` and create a YML file which will define the jobs to be run for that specific action.
+The actions file starts out with,
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+```
+name: workflow name
+```
 
-## Code scaffolding
+### Workflow trigger
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Assign a trigger to start off your workflow. This can be a push to a specific branch, a PR acceptance etc.
 
-## Build
+```
+on:
+	push:
+		branches:
+			- 'master'
+```
+[Full guide to events that can trigger workflows](https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows)
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### Job specific instructions (Angular here)
 
-## Running unit tests
+This section details the job specific instructions for the YML file. Since we are trying to deploy an Angular application here, the key things to note are to install NPM on the job runner to be able to build the application.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```
+jobs:
+	build:
+		name: Build
+		runs-on: ubuntu-latest
+		steps: <<steps will follow here>>
+```
 
-## Running end-to-end tests
+The default Ubuntu hosted GitHub job runner will be used with this configuration.
++ [GitHub Job Runner](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners)
++ [Custom (Self hosted) Job Runner](https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners)
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+### Check out source code
 
-## Further help
+The defined job does not pull source code by default, you need to specify a source. This step utilizes a default GitHub action called `checkout` which does just that.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+```
+- name: Checkout
+  uses: actions/checkout@v1
+```
+
+### Install NodeJS
+
+Configure the runner with NodeJS as we need NPM
+
+```
+- name: Use Node 12.x
+  uses: actions/setup-node@v1
+  with:
+    node-version: '12.x'
+```
+[Detailed instruction about various runtimes available](https://docs.github.com/en/actions/automating-builds-and-tests/about-continuous-integration)
+
+### Install dependencies and run build command
+
+This is the Angular specific part of the documentation, which first runs `npm ci` to install any dependencies and then runs the build command according to the `package.json` file which basically runs `ng build` with the specified options from the `angular.json` file.
+
+```
+- name: Install dependencies
+  run: npm ci
+- name: Build
+  run: npm run build
+```
+
+### Upload artifacts
+
+The build artifacts must be placed in an appropriate directory for the next deploy job to be able to pick them up. Here, the build artifact will be the generated `dist` folder from the previous run of `ng build`.
+
+```
+- name: Archive build
+  if: success()
+  uses: actions/upload-artifact@v1
+  with:
+    name: deploy_dist
+	path: dist
+```
+
+`if: success()` is used to run this step only if the previous step (build) passed.
