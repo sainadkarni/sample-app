@@ -17,9 +17,9 @@ Assign a trigger to start off your workflow. This can be a push to a specific br
 
 ```
 on:
-	push:
-		branches:
-			- 'master'
+  push:
+	branches:
+	  - 'master'
 ```
 [Full guide to events that can trigger workflows](https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows)
 
@@ -29,10 +29,10 @@ This section details the job specific instructions for the YML file. Since we ar
 
 ```
 jobs:
-	build:
-		name: Build
-		runs-on: ubuntu-latest
-		steps: <<steps will follow here>>
+  build:
+	name: Build
+	runs-on: ubuntu-latest
+	steps: <<steps will follow here>>
 ```
 
 The default Ubuntu hosted GitHub job runner will be used with this configuration.
